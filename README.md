@@ -17,7 +17,21 @@
 ### Environment Variables
 
 DEBUG - for logs with debug log level, optional, default False.
+
 TOKEN - API Key from Samsung SmartThings developer portal, required.
+
+#### Set environment variable in Windows
+
+- Run sysdm.cpl -> Advanced -> Environment Variables -> New
+- Variable Name TOKEN
+- Variable value "Your Samsung PAT" ,
+- Close and reopen command prompt
+
+### Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
 
 ### Run
 
