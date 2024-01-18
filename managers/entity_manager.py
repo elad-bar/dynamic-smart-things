@@ -81,6 +81,9 @@ class EntityManager:
 
         if power_consumption_attribute is not None:
             attribute_value = power_consumption_attribute.value
+            if attribute_value is None:
+                return
+
             props = power_consumption_attribute.properties.get("properties", {})
 
             params = [
