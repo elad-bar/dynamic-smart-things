@@ -1,5 +1,9 @@
+import logging
+
 from helpers.command_validators import ARGUMENT_VALIDATORS
 from helpers.errors import CommandError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class CommandEntity:
@@ -35,6 +39,8 @@ class CommandEntity:
 
     @staticmethod
     def load(data: dict):
+        _LOGGER.debug(f"Loading command, Data: {data}")
+
         entity = CommandEntity()
         entity.command = data.get("command")
         entity.arguments = data.get("arguments")

@@ -38,33 +38,25 @@ class CapabilitiesAPI(BaseAPI):
 
         return self._capabilities
 
-    async def load_device_capabilities(self, devices: list):
+    async def load_details(self, device_capabilities: list[str]):
+        _LOGGER.info(f"Importing Device {self.endpoint} data")
+
         if self._device_capabilities is None:
             self._device_capabilities = {}
 
-        for device in devices:
-            components = device.get("components", {})
+        for capability_id in device_capabilities:
+            if capability_id not in self._device_capabilities:
+                capability_metadata = self._capabilities.get(capability_id)
 
-            for component_id in components:
-                component = components.get(component_id)
-                capabilities = list(component.keys())
+                if capability_metadata is None:
+                    capability_metadata = {
+                        "id": capability_id,
+                        "version": 1
+                    }
 
-                for capability_id in capabilities:
-                    if capability_id not in self._device_capabilities:
-                        capability_metadata = self._capabilities.get(capability_id)
+                device_capability = await self.get_capability(capability_metadata)
 
-                        if capability_metadata is None:
-                            capability_metadata = {
-                                "id": capability_id,
-                                "version": 1
-                            }
-
-                        device_capability = await self.get_capability(capability_metadata)
-                        # capability_presentation = await self.get_capability_presentation(capability_metadata)
-
-                        # device_capability["presentation"] = capability_presentation
-
-                        self._device_capabilities[capability_id] = device_capability
+                self._device_capabilities[capability_id] = device_capability
 
     async def get_capability(self, capability_data):
         params = ["id", "version"]

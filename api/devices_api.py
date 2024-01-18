@@ -1,3 +1,4 @@
+import json
 import logging
 
 from aiohttp import ClientSession
@@ -47,6 +48,22 @@ class DevicesAPI(BaseAPI):
 
         return device_status
 
+    def get_device_capabilities(self) -> list[str]:
+        device_capabilities: list[str] = []
+
+        for device in self._devices:
+            components = device.get("components", {})
+
+            for component_id in components:
+                component = components.get(component_id)
+                capabilities = list(component.keys())
+
+                for capability_id in capabilities:
+                    if capability_id not in device_capabilities:
+                        device_capabilities.append(capability_id)
+
+        return device_capabilities
+
     async def send_command(self,
                            device_id: str,
                            component_id: str,
@@ -78,10 +95,23 @@ class DevicesAPI(BaseAPI):
         results = response.get("results", [])
 
         if len(results) == 0:
+            _LOGGER.warning(
+                f"Failed to execute command due to invalid response, "
+                f"Request: {json.dumps(command_data)}, "
+                f"Response: {results}"
+            )
+
             return False
 
         result = results[0]
         result_status = result.get("status")
         is_success = result_status in SUCCESS_UPDATE_STATUS
+
+        if not is_success:
+            _LOGGER.warning(
+                f"Failed to execute command, "
+                f"Request: {json.dumps(command_data)}, "
+                f"Response: {result}"
+            )
 
         return is_success

@@ -1,11 +1,17 @@
+import logging
+
 from helpers.consts import CAPABILITIES_MAPPING_WITH_DEPENDENCY, CAPABILITIES_MAPPING
 from models.capability import CapabilityEntity
 from models.device import DeviceEntity
 from models.entity import Entity
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class EntityManager:
     def __init__(self):
+        _LOGGER.info("Initializing manager")
+
         self._entities: list[Entity] | None = None
 
         self._handlers = [
@@ -29,6 +35,8 @@ class EntityManager:
         return self._entities
 
     def get_entities(self, entity_type: str):
+        _LOGGER.info(f"Get entities for type: {entity_type}")
+
         entities = [
             entity
             for entity in self._entities
@@ -38,6 +46,8 @@ class EntityManager:
         return entities
 
     def load(self, devices: list[DeviceEntity]):
+        _LOGGER.info("Loading Entity recommendation")
+
         self._entities = []
 
         for handler in self._handlers:
@@ -53,6 +63,10 @@ class EntityManager:
             component_id: str,
             component_capabilities: dict[str, CapabilityEntity]
     ):
+        _LOGGER.debug(
+            f"Creating power consumption report entities of {device.label}, "
+            f"Component: {component_id}"
+        )
 
         capability_id = "powerConsumptionReport"
         attribute_key = "powerConsumption"
@@ -92,9 +106,11 @@ class EntityManager:
                 for attribute_sub_key in attribute_value
             ]
 
-            for entity in self._entities:
-                if entity.unique_id == unique_id:
-                    self._entities.remove(entity)
+            self._entities = [
+                entity
+                for entity in self._entities
+                if entity.unique_id != unique_id
+            ]
 
             self._entities.extend(power_consumption_report_entities)
 
@@ -104,6 +120,11 @@ class EntityManager:
             component_id: str,
             component_capabilities: dict[str, CapabilityEntity]
     ):
+        _LOGGER.debug(
+            f"Creating mapped entities (with dependency) of {device.label}, "
+            f"Component: {component_id}"
+        )
+
         for entity_type in CAPABILITIES_MAPPING_WITH_DEPENDENCY:
             mappings = CAPABILITIES_MAPPING_WITH_DEPENDENCY[entity_type]
 
@@ -138,6 +159,11 @@ class EntityManager:
             component_id: str,
             component_capabilities: dict[str, CapabilityEntity]
     ):
+        _LOGGER.debug(
+            f"Creating mapped entities (without dependency) of {device.label}, "
+            f"Component: {component_id}"
+        )
+
         for entity_type in CAPABILITIES_MAPPING:
             mappings = CAPABILITIES_MAPPING[entity_type]
 
@@ -168,6 +194,10 @@ class EntityManager:
             component_id: str,
             component_capabilities: dict[str, CapabilityEntity]
     ):
+        _LOGGER.debug(
+            f"Creating default entities of {device.label}, "
+            f"Component: {component_id}"
+        )
 
         for capability_id in component_capabilities:
             capability = component_capabilities.get(capability_id)

@@ -22,6 +22,8 @@ class BaseAPI:
         return None
 
     async def load(self):
+        _LOGGER.info(f"Importing {self.endpoint} data")
+
         await self._load()
 
     async def _load(self) -> list | dict:

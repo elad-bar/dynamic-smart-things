@@ -1,6 +1,10 @@
+import logging
+
 from helpers.errors import CommandError
 from models.attribute import AttributeEntity
 from models.command import CommandEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class CapabilityEntity:
@@ -43,6 +47,8 @@ class CapabilityEntity:
 
     @staticmethod
     def load(data: dict, device_capability: dict):
+        _LOGGER.debug(f"Loading capability, Data: {data}")
+
         entity = CapabilityEntity()
 
         entity.name = device_capability.get("name")
