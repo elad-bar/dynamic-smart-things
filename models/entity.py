@@ -4,9 +4,14 @@ class Entity:
         self.type: str | None = None
         self.details: dict | None = None
         self.device_id: dict | None = None
+        self.device_name: str | None = None
         self.component_id: dict | None = None
         self.capability_id: dict | None = None
         self.attribute_id: dict | None = None
+
+    @property
+    def name(self):
+        return f"{self.device_name} {self.component_id} {self.capability_id} {self.attribute_id}"
 
     @property
     def unique_id(self):
