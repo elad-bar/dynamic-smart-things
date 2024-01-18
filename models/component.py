@@ -1,6 +1,11 @@
+import logging
+from copy import copy
+
 from helpers.enums import SystemAttribute
 from helpers.errors import CommandError
 from models.capability import CapabilityEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ComponentEntity:
@@ -28,7 +33,9 @@ class ComponentEntity:
         return capability.get_value(attribute_key)
 
     @staticmethod
-    def load(data: dict, device_capabilities: dict):
+    def load(data: dict, device_capabilities: dict, ignore_system_attributes: bool = True):
+        _LOGGER.debug(f"Loading component, Data: {data}")
+
         component = ComponentEntity()
         component.capabilities = {}
 
@@ -43,13 +50,16 @@ class ComponentEntity:
 
         component.disabled_capabilities = component.get_system_attribute(SystemAttribute.DISABLED_CAPABILITIES)
 
-        ignored_capabilities = [
-            f"custom.{SystemAttribute.__dict__[key]}"
-            for key in SystemAttribute.__dict__
-            if not key.startswith("__") and not callable(SystemAttribute.__dict__[key])
-        ]
+        ignored_capabilities = copy(component.disabled_capabilities)
 
-        ignored_capabilities.extend(component.disabled_capabilities)
+        if ignore_system_attributes:
+            ignored_system_capabilities = [
+                f"custom.{SystemAttribute.__dict__[key]}"
+                for key in SystemAttribute.__dict__
+                if not key.startswith("__") and not callable(SystemAttribute.__dict__[key])
+            ]
+
+            ignored_capabilities.extend(ignored_system_capabilities)
 
         for capability_id in ignored_capabilities:
             if capability_id in component.capabilities:

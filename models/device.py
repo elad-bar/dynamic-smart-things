@@ -1,6 +1,10 @@
+import logging
+
 from helpers.enums import SystemAttribute
 from helpers.errors import CommandError
 from models.component import ComponentEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class DeviceEntity:
@@ -24,6 +28,8 @@ class DeviceEntity:
 
     @staticmethod
     def load(data: dict, device_capabilities: dict):
+        _LOGGER.debug(f"Loading device, Data: {data}")
+
         device = DeviceEntity()
         device.device_id = data.get("deviceId")
         device.label = data.get("label")
@@ -34,19 +40,23 @@ class DeviceEntity:
         device.components = {}
 
         device_components = data.get("components")
+        main_component_data = device_components.get("main")
 
-        for component_id in device_components:
-            device_component = device_components.get(component_id)
+        main_component = ComponentEntity.load(
+            main_component_data,
+            device_capabilities,
+            False
+        )
 
-            device.components[component_id] = ComponentEntity.load(device_component, device_capabilities)
+        device.disabled_components = main_component.get_system_attribute(SystemAttribute.DISABLED_COMPONENTS)
 
-        main_component: ComponentEntity = device.components.get("main")
-
-        if main_component:
-            device.disabled_components = main_component.get_system_attribute(SystemAttribute.DISABLED_COMPONENTS)
-
-            for component_id in device.disabled_components:
-                if component_id in device.disabled_components:
-                    del device.components[component_id]
+        device.components = {
+            component_id: ComponentEntity.load(
+                device_components.get(component_id),
+                device_capabilities
+            )
+            for component_id in device_components
+            if component_id not in device.disabled_components
+        }
 
         return device
